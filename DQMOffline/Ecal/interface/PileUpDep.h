@@ -41,6 +41,7 @@
 #include "DataFormats/JetReco/interface/CaloJet.h"
 #include "DataFormats/JetReco/interface/CaloJetCollection.h"
 #include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
+#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
 
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
@@ -105,8 +106,32 @@ private:
 	MonitorElement * scHitEtEB;
 	MonitorElement * scHitEtEE;
 	
+	MonitorElement * scHitE_EB;
+	MonitorElement * scHitE_EE;
+	
+	//Eta
+	MonitorElement * scEta_EB;
+	MonitorElement * scEta_EE;
+	
+	//Phi
+	MonitorElement * scPhi_EB;
+	MonitorElement * scPhi_EE;
+	
+	//sc sigma eta_eta and eta phi
+	
+	MonitorElement *scSigmaIetaIeta_EB;
+	MonitorElement *scSigmaIetaIeta_EE;
+
+	MonitorElement *scSigmaIetaIphi_EB;
+	MonitorElement *scSigmaIetaIphi_EE;
+	
+	//R9
+	MonitorElement *r9_EB; 
+	MonitorElement *r9_EE;
+	
 	bool initCaloGeometry_;
 	edm::ESHandle<CaloGeometry> geomH;
+	edm::ESHandle<CaloTopology> caloTop;
 
 
 };
