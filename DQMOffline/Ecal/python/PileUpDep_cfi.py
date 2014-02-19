@@ -7,6 +7,7 @@ PileUpDep = cms.EDAnalyzer('PileUpDep',
 			   superClusterCollection_EB = cms.InputTag("correctedHybridSuperClusters"),
 			   RecHitCollection_EB = cms.InputTag("ecalRecHit","EcalRecHitsEB"),
 			   RecHitCollection_EE = cms.InputTag("ecalRecHit","EcalRecHitsEE"),
+			   EleTag              = cms.InputTag("gsfElectrons"),
 
                       )
 

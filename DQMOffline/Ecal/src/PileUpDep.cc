@@ -32,7 +32,7 @@ PileUpDep::PileUpDep(const edm::ParameterSet& ps)
 	
 	RecHitCollection_EB_       = consumes<EcalRecHitCollection>(ps.getParameter<edm::InputTag>("RecHitCollection_EB"));
 	RecHitCollection_EE_       = consumes<EcalRecHitCollection>(ps.getParameter<edm::InputTag>("RecHitCollection_EE"));
-
+	EleTag_ = consumes<reco::GsfElectronCollection>(ps.getParameter<edm::InputTag>("EleTag")); 
 	//print_=ps.getUntrackedParameter<bool>("print"); 
 
 }
@@ -98,7 +98,19 @@ void PileUpDep::bookHistograms(DQMStore::IBooker & ibooker,
 	recHitEtEE_PV->setAxisTitle("N_{pv}",1);
 	recHitEtEE_PV->setAxisTitle("Reconstructed hit E_{T} [GeV]", 2); 
 	
+	prof_name="emIso_PV"; 
+	title="EM Isolation vs. PV"; 
+	emIso_PV=ibooker.bookProfile(prof_name,title,50,0.,50.,50,0.,350);
+	emIso_PV->setAxisTitle("N_{pv}",1);
+	emIso_PV->setAxisTitle("EM_{Isolation} [GeV]", 2); 
+	
 	//construct histograms 
+	
+	prof_name="emIso"; 
+	title="EM Isolation"; 
+	emIso=ibooker.book1D(prof_name,title,50,0,50);
+	emIso->setAxisTitle("EM_{Isolation} [GeV]",1); 
+	emIso->setAxisTitle("Events",2); 
 	
 	prof_name="scHitEtEB"; 
 	title="Super Cluster Hit Et EB"; 
@@ -231,6 +243,13 @@ void PileUpDep::analyze(const edm::Event& e, const edm::EventSetup& c){
 	if ( ! PVCollection_h.isValid() ) {
 		edm::LogWarning("VertexCollection") << "VertexCollection not found"; 
 	}
+	//-----------------gsfElectrons -------------------------
+	edm::Handle<reco::GsfElectronCollection> electronCollection_h; 
+	e.getByToken(EleTag_, electronCollection_h); 
+	if( !electronCollection_h.isValid()){
+		edm::LogWarning("EBRecoSummary") << "Electrons not found"; 
+	}
+	
 	
 	//----------------- Basic Cluster Collection Ecal Barrel  ---------
 	edm::Handle<reco::BasicClusterCollection> basicClusters_EB_h;
@@ -275,6 +294,22 @@ void PileUpDep::analyze(const edm::Event& e, const edm::EventSetup& c){
 	if ( ! superClusters_EE_h.isValid() ) {
 		edm::LogWarning("EERecoSummary") << "superClusters_EE_h not found"; 
 	}
+	//--------- Fill Isolation -----------------
+	double IsoEcal=0; 
+	
+	if(electronCollection_h.isValid()){
+		for (reco::GsfElectronCollection::const_iterator recoElectron =
+			 electronCollection_h->begin ();
+			 recoElectron != electronCollection_h->end (); recoElectron++)
+		{
+			//std::cout << "EM Iso: " << recoElectron->dr03EcalRecHitSumEt() << std::endl; 
+			IsoEcal +=recoElectron->dr03EcalRecHitSumEt();///recoElectron->et()
+		}		
+		emIso_PV->Fill(PVCollection_h->size(),IsoEcal);
+		emIso->Fill(IsoEcal);
+	}
+
+	//fill super clusters EE
 	scEE_PV->Fill(PVCollection_h->size(), superClusters_EE_h->size()); 
 
 	double scEE_Et=0; //EE Et (Transverse energy)

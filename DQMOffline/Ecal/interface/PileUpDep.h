@@ -38,6 +38,15 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalRecHitLess.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 
+#include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrackExtra.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTangent.h"
+#include "DataFormats/EgammaCandidates/interface/ElectronFwd.h"
+#include "DataFormats/EgammaCandidates/interface/Electron.h"
+#include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
+
 #include "DataFormats/JetReco/interface/CaloJet.h"
 #include "DataFormats/JetReco/interface/CaloJetCollection.h"
 #include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
@@ -79,6 +88,7 @@ protected:
 
 	edm::EDGetTokenT<reco::SuperClusterCollection> superClusterCollection_EB_;
 	edm::EDGetTokenT<reco::SuperClusterCollection> superClusterCollection_EE_;
+	edm::EDGetTokenT<reco::GsfElectronCollection> EleTag_;
 	
 	edm::EDGetTokenT<EcalRecHitCollection> RecHitCollection_EB_;
 	edm::EDGetTokenT<EcalRecHitCollection> RecHitCollection_EE_;
@@ -98,8 +108,10 @@ private:
 	MonitorElement * recHitEtEB_PV; // reconstructed hit Et profiles vs number of vertices
 	MonitorElement * recHitEtEE_PV;
 
+	MonitorElement * emIso_PV;
 	
 	// histograms of reconstructed hit Et and supercluster Et
+	MonitorElement * emIso; 
 	MonitorElement * recHitEtEB;
 	MonitorElement * recHitEtEE;
 	
