@@ -44,6 +44,8 @@ void PileUpDep::bookHistograms(DQMStore::IBooker & ibooker,
                                 edm::Run const & /* iRun */,
                                 edm::EventSetup const & /* iSetup */) {
 
+	//book histograms and profiles. Define monitor elements in .h file
+	
   // Fetch GlobalTag information and fill the string/ME.
    // initialize
 	ibooker.cd();
@@ -114,27 +116,27 @@ void PileUpDep::bookHistograms(DQMStore::IBooker & ibooker,
 	
 	prof_name="scHitEtEB"; 
 	title="Super Cluster Hit Et EB"; 
-	scHitEtEB=ibooker.book1D(prof_name,title,50,0,350);
+	scHitEtEB=ibooker.book1D(prof_name,title,50,0,100);
 	scHitEtEB->setAxisTitle("super cluster hit E_{T} [GeV]",1); 
 	scHitEtEB->setAxisTitle("Events",2); 
 	
 	prof_name="scHitEtEE"; 
 	title="Super Cluster Hit Et EE"; 
-	scHitEtEE=ibooker.book1D(prof_name,title,50,0,350);
+	scHitEtEE=ibooker.book1D(prof_name,title,50,0,100);
 	scHitEtEE->setAxisTitle("super cluster hit E_{T} [GeV]",1); 
 	scHitEtEE->setAxisTitle("Events",2); 
 
 	
 	prof_name="scHitE_EB"; 
 	title="Super Cluster Hit E EB"; 
-	scHitE_EB=ibooker.book1D(prof_name,title,50,0,350);
+	scHitE_EB=ibooker.book1D(prof_name,title,50,0,100);
 	scHitE_EB->setAxisTitle("super cluster hit E [GeV]",1);
 	scHitE_EB->setAxisTitle("Events",2); 
 
 	
 	prof_name="scHitE_EE"; 
 	title="Super Cluster Hit E EE"; 
-	scHitE_EE=ibooker.book1D(prof_name,title,50,0,350);
+	scHitE_EE=ibooker.book1D(prof_name,title,50,0,100);
 	scHitE_EE->setAxisTitle("super cluster hit E [GeV]",1);
 	scHitE_EE->setAxisTitle("Events",2); 
 	
@@ -294,8 +296,8 @@ void PileUpDep::analyze(const edm::Event& e, const edm::EventSetup& c){
 	if ( ! superClusters_EE_h.isValid() ) {
 		edm::LogWarning("EERecoSummary") << "superClusters_EE_h not found"; 
 	}
+	
 	//--------- Fill Isolation -----------------
-	double IsoEcal=0; 
 	
 	if(electronCollection_h.isValid()){
 		for (reco::GsfElectronCollection::const_iterator recoElectron =
@@ -303,22 +305,20 @@ void PileUpDep::analyze(const edm::Event& e, const edm::EventSetup& c){
 			 recoElectron != electronCollection_h->end (); recoElectron++)
 		{
 			//std::cout << "EM Iso: " << recoElectron->dr03EcalRecHitSumEt() << std::endl; 
-			IsoEcal +=recoElectron->dr03EcalRecHitSumEt();///recoElectron->et()
+			double IsoEcal =recoElectron->dr03EcalRecHitSumEt();///recoElectron->et()
+			emIso_PV->Fill(PVCollection_h->size(),IsoEcal);
+			emIso->Fill(IsoEcal);
 		}		
-		emIso_PV->Fill(PVCollection_h->size(),IsoEcal);
-		emIso->Fill(IsoEcal);
+	
 	}
 
 	//fill super clusters EE
 	scEE_PV->Fill(PVCollection_h->size(), superClusters_EE_h->size()); 
-
-	double scEE_Et=0; //EE Et (Transverse energy)
-	double scEE_E=0; // EE E (energy)
 	
 	for (reco::SuperClusterCollection::const_iterator itSC = superClusters_EE_h->begin(); 
 		 itSC != superClusters_EE_h->end(); ++itSC ) {
-		scEE_Et+= itSC -> energy() * sin(2.*atan( exp(- itSC->position().eta() )));
-		scEE_E+=itSC->energy();
+		double scEE_Et= itSC -> energy() * sin(2.*atan( exp(- itSC->position().eta() )));
+		double scEE_E=itSC->energy();
 		
 		//fill super cluster endcap eta/phi
 		scEta_EE->Fill(itSC->position().eta());
@@ -343,13 +343,13 @@ void PileUpDep::analyze(const edm::Event& e, const edm::EventSetup& c){
 		scSigmaIetaIphi_EE->Fill(sigmaIetaIphi);
 		
 		//std::cout  << " sigmaIetaIeta: " << sigmaIetaIeta << std::endl; 
-
+		scEtEE_PV->Fill(PVCollection_h->size(),scEE_Et); 
+		scHitEtEE->Fill(scEE_Et); //super cluster Et historam 
+		scHitE_EE->Fill(scEE_E); //super cluster energy histogram
 		
 	}//sc-EE loop
 	
-	scEtEE_PV->Fill(PVCollection_h->size(),scEE_Et); 
-	scHitEtEE->Fill(scEE_Et); //super cluster Et historam 
-	scHitE_EE->Fill(scEE_E); //super cluster energy histogram
+
 	
 	//----------------- Super Cluster Collection Ecal Barrel  ---------
 
@@ -360,18 +360,15 @@ void PileUpDep::analyze(const edm::Event& e, const edm::EventSetup& c){
 	}
 	scEB_PV->Fill(PVCollection_h->size(), superClusters_EB_h->size()); 
 
-	double scEB_Et=0; //EB Et 
-	double scEB_E=0; //EB E 
-
-	
+		
 	for (reco::SuperClusterCollection::const_iterator itSC = superClusters_EB_h->begin(); 
 		 itSC != superClusters_EB_h->end(); ++itSC ) {
-		scEB_Et+= itSC -> energy() * sin(2.*atan( exp(- itSC->position().eta() )));
-		scEB_E+= itSC->energy();
+		double scEB_Et= itSC -> energy() * sin(2.*atan( exp(- itSC->position().eta() ))); // super cluster transverse energy
+		double scEB_E= itSC->energy(); // super cluster energy
 		
 		//fill super cluster Barrel eta/phi
-		scEta_EB->Fill(itSC->position().eta());
-		scPhi_EB->Fill(itSC->position().phi());
+		scEta_EB->Fill(itSC->position().eta()); //super cluster eta
+		scPhi_EB->Fill(itSC->position().phi()); // super cluster phi
 		
 		//sigma ietaieta etc 
 		
@@ -392,12 +389,12 @@ void PileUpDep::analyze(const edm::Event& e, const edm::EventSetup& c){
 		scSigmaIetaIeta_EB->Fill(sigmaIetaIeta);
 		scSigmaIetaIphi_EB->Fill(sigmaIetaIphi);
 		
+		scEtEB_PV->Fill(PVCollection_h->size(),scEB_Et); 
+		scHitEtEB->Fill(scEB_Et); 
+		scHitE_EB->Fill(scEB_E); 
 	}//sc-EB loop
 	
-	scEtEB_PV->Fill(PVCollection_h->size(),scEB_Et); 
-	scHitEtEB->Fill(scEB_Et); 
-	scHitE_EB->Fill(scEB_E); 
-	
+
 
 	//-------------------Compute scalar sum of reconstructed hit Et
 	double RecHitEt_EB=0; 
